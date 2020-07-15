@@ -16843,7 +16843,7 @@ in
 
   cramfsswap = callPackage ../os-specific/linux/cramfsswap { };
 
-  crda = callPackage ../os-specific/linux/crda { };
+  crda = callPackage ../os-specific/linux/crda { python3 = buildPackages.python3; };
 
   # Darwin package set
   #
