@@ -5,7 +5,7 @@
 , asciidoc, texinfo, xmlto, docbook2x, docbook_xsl, docbook_xml_dtd_45
 , libxslt, tcl, tk, makeWrapper, libiconv
 , svnSupport, subversionClient, perlLibs, smtpPerlLibs
-, perlSupport ? true
+, perlSupport ? false
 , guiSupport
 , withManual ? true
 , pythonSupport ? true
