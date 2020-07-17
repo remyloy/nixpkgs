@@ -15,6 +15,8 @@
 , withLibsecret ? false
 , pkgconfig, glib, libsecret
 , gzip # needed at runtime by gitweb.cgi
+, bash # needed at runtime by scripts in libexec
+, file
 }:
 
 assert sendEmailSupport -> perlSupport;
@@ -63,10 +65,10 @@ stdenv.mkDerivation {
         --subst-var-by gettext ${gettext}
   '';
 
-  nativeBuildInputs = [ gettext perlPackages.perl ]
+  nativeBuildInputs = [ gettext perlPackages.perl file ]
     ++ stdenv.lib.optionals withManual [ asciidoc texinfo xmlto docbook2x
          docbook_xsl docbook_xml_dtd_45 libxslt ];
-  buildInputs = [curl openssl zlib expat cpio makeWrapper libiconv]
+  buildInputs = [bash curl openssl zlib expat cpio makeWrapper libiconv]
     ++ stdenv.lib.optionals perlSupport [ perlPackages.perl ]
     ++ stdenv.lib.optionals guiSupport [tcl tk]
     ++ stdenv.lib.optionals withpcre2 [ pcre2 ]
@@ -172,7 +174,7 @@ stdenv.mkDerivation {
           @a=(
             '${gnugrep}/bin/grep', '${gnused}/bin/sed', '${gawk}/bin/awk',
             '${coreutils}/bin/cut', '${coreutils}/bin/basename', '${coreutils}/bin/dirname',
-            '${coreutils}/bin/wc', '${coreutils}/bin/tr'
+            '${coreutils}/bin/wc', '${coreutils}/bin/tr',
             ${stdenv.lib.optionalString perlSupport ", '${perlPackages.perl}/bin/perl'"}
           );
         }
@@ -259,6 +261,15 @@ stdenv.mkDerivation {
     EOF
   '';
 
+  fixupPhase = ''
+    for filename in $out/libexec/git-core/git-*; do
+      [ -e "$filename" ] || continue
+      if [[ $(file -b $filename | grep 'ASCII text executable') ]]; then
+        echo "Patch $filename - replace ${stdenv.builder} with ${bash}"
+        sed -i 's|#!${stdenv.builder}|#!${bash}/bin/bash|' $filename
+      fi
+    done
+  '';
 
   ## InstallCheck
 
